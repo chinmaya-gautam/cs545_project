@@ -350,8 +350,8 @@ run_balance_task(void)
         // target[R_HAA].th -=  0.25;
         // target[R_AAA].th +=  0.05;
 
-        target[L_HFE].th += 1.0;
-        target[L_KFE].th += 0.5;
+        target[L_HFE].th += 0.5;
+        target[L_KFE].th += 0.2;
 
         // stat[LEFT_FOOT][1] = FALSE;
         // stat[LEFT_FOOT][2] = FALSE;
@@ -375,8 +375,8 @@ run_balance_task(void)
         // target[L_HAA].th -=  0.25;
         // target[L_AAA].th -=  0.05;
 
-        target[R_HFE].th += 1.0;
-        target[R_KFE].th += 0.5;
+        target[R_HFE].th += 0.5;
+        target[R_KFE].th += 0.2;
 
         // stat[RIGHT_FOOT][1] = FALSE;
         // stat[RIGHT_FOOT][2] = FALSE;
