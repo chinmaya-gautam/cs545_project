@@ -25,6 +25,7 @@ Remarks:
 #include "SL_man.h"
 
 // defines
+//#define VERBOSE_LOG
 
 // local variables
 static double      start_time = 0.0;
@@ -33,6 +34,8 @@ static SL_DJstate  saved_target[N_DOFS+1];
 static SL_Cstate   cog_target;
 static SL_Cstate   cog_traj;
 static SL_Cstate   cog_ref;
+static SL_Cstate   cog_start_state;
+
 static double      delta_t = 0.01;
 static double      duration = 10.0;
 static double      time_to_go;
@@ -68,14 +71,14 @@ static int  change_balance_task(void);
 
 static int 
 min_jerk_next_step (double x,double xd, double xdd, double t, double td, double tdd,
-		    double t_togo, double dt,
-		    double *x_next, double *xd_next, double *xdd_next);
+        double t_togo, double dt,
+        double *x_next, double *xd_next, double *xdd_next);
 
 
 /*****************************************************************************
 ******************************************************************************
-Function Name	: add_balance_task
-Date		: Feb 1999
+Function Name : add_balance_task
+Date    : Feb 1999
 Remarks:
 
 adds the task to the task menu
@@ -92,14 +95,14 @@ add_balance_task( void )
   int i, j;
   
   addTask("Balance Task", init_balance_task, 
-	  run_balance_task, change_balance_task);
+    run_balance_task, change_balance_task);
 
 }    
 
 /*****************************************************************************
 ******************************************************************************
-  Function Name	: init_balance_task
-  Date		: Dec. 1997
+  Function Name : init_balance_task
+  Date    : Dec. 1997
 
   Remarks:
 
@@ -169,7 +172,7 @@ init_balance_task(void)
 
   start_time = task_servo_time;
   printf("start time = %.3f, task_servo_time = %.3f\n", 
-	 start_time, task_servo_time);
+   start_time, task_servo_time);
 
   // start data collection
   scd();
@@ -179,13 +182,15 @@ init_balance_task(void)
   balance_foot = RIGHT_FOOT;
   // balance_foot = LEFT_FOOT;
 
+  cog_start_state = cog;
+
   return TRUE;
 }
 
 /*****************************************************************************
 ******************************************************************************
-  Function Name	: run_balance_task
-  Date		: Dec. 1997
+  Function Name : run_balance_task
+  Date    : Dec. 1997
 
   Remarks:
 
@@ -223,18 +228,24 @@ run_balance_task(void)
     
   case ASSIGN_COG_TARGET:
 
+#ifdef VERBOSE_LOG
     printf("assign cog target\n");
+#endif
 
     // what is the target for the COG?
     bzero((void *)&cog_target,sizeof(cog_target));
 
     // where_cog for target when on right foot:
     // 0.054 ( 0.055)   y= 0.012 ( 0.014)   z=-0.119 (-0.117)
-
-    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.054 : -0.054;
+    printf("base state: %4.3f, %4.3f, %4.3f\n", base_state.x[_X_], base_state.x[_Y_], base_state.x[_Z_]);
+    printf("cog state: %4.3f, %4.3f, %4.3f\n", cog.x[_X_], cog.x[_Y_], cog.x[_Z_]);
+    printf("left foot state: %4.3f, %4.3f, %4.3f\n", cart_state[LEFT_FOOT].x[_X_], cart_state[LEFT_FOOT].x[_Y_], cart_state[LEFT_FOOT].x[_Z_]);
+    printf("right foot state: %4.3f, %4.3f, %4.3f\n", cart_state[RIGHT_FOOT].x[_X_], cart_state[RIGHT_FOOT].x[_Y_], cart_state[RIGHT_FOOT].x[_Z_]);
+    
+    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? cart_state[RIGHT_FOOT].x[_X_] : cart_state[LEFT_FOOT].x[_X_];
     // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
-    cog_target.x[_Y_] =  0.012;
-    cog_target.x[_Z_] = -0.119;
+    cog_target.x[_Y_] =  cog_start_state.x[_Y_];
+    cog_target.x[_Z_] =  cog_start_state.x[_Z_];
 
     // the structure cog_des has the current position of the COG computed from the
     // joint_des_state of the robot. cog_des should track cog_traj
@@ -252,21 +263,23 @@ run_balance_task(void)
 
   case MOVE_TO_COG_TARGET: // this is for inverse kinematics control
 
+#ifdef VERBOSE_LOG
     printf("move cog target\n");
+#endif
 
     // plan the next step of cog with min jerk
     for (i=1; i<=N_CART; ++i) {
       min_jerk_next_step(cog_traj.x[i],
-			 cog_traj.xd[i],
-			 cog_traj.xdd[i],
-			 cog_target.x[i],
-			 cog_target.xd[i],
-			 cog_target.xdd[i],
-			 time_to_go,
-			 delta_t,
-			 &(cog_traj.x[i]),
-			 &(cog_traj.xd[i]),
-			 &(cog_traj.xdd[i]));
+       cog_traj.xd[i],
+       cog_traj.xdd[i],
+       cog_target.x[i],
+       cog_target.xd[i],
+       cog_target.xdd[i],
+       time_to_go,
+       delta_t,
+       &(cog_traj.x[i]),
+       &(cog_traj.xd[i]),
+       &(cog_traj.xdd[i]));
     }
 
     // inverse kinematics: we use a P controller to correct for tracking erros
@@ -314,7 +327,9 @@ run_balance_task(void)
 
   case ASSIGN_JOINT_TARGET_LIFT_UP:
 
+#ifdef VERBOSE_LOG
     printf("assign joint target lift up\n");
+#endif
 
     // initialize the target structure from the joint_des_state
     for (i=1; i<=N_DOFS; ++i)
@@ -382,21 +397,23 @@ run_balance_task(void)
 
   case MOVE_JOINT_TARGET_LIFT_UP:
 
+#ifdef VERBOSE_LOG
     printf("move joint target lift up\n");
+#endif
 
     // compute the update for the desired states
     for (i=1; i<=N_DOFS; ++i) {
       min_jerk_next_step(joint_des_state[i].th,
-			 joint_des_state[i].thd,
-			 joint_des_state[i].thdd,
-			 target[i].th,
-			 target[i].thd,
-			 target[i].thdd,
-			 time_to_go,
-			 delta_t,
-			 &(joint_des_state[i].th),
-			 &(joint_des_state[i].thd),
-			 &(joint_des_state[i].thdd));
+       joint_des_state[i].thd,
+       joint_des_state[i].thdd,
+       target[i].th,
+       target[i].thd,
+       target[i].thdd,
+       time_to_go,
+       delta_t,
+       &(joint_des_state[i].th),
+       &(joint_des_state[i].thd),
+       &(joint_des_state[i].thdd));
     }
 
     // decrement time to go
@@ -412,7 +429,9 @@ run_balance_task(void)
 
   case ASSIGN_JOINT_TARGET_LOWER_DOWN:
 
+#ifdef VERBOSE_LOG
     printf("assign joint target lower down\n");
+#endif
 
     // initialize the target structure from the saved target with both legs
     // on the ground
@@ -430,21 +449,23 @@ run_balance_task(void)
 
   case MOVE_JOINT_TARGET_LOWER_DOWN:
 
+#ifdef VERBOSE_LOG
     printf("move joint target lower down\n");
+#endif
 
     // compute the update for the desired states
     for (i=1; i<=N_DOFS; ++i) {
       min_jerk_next_step(joint_des_state[i].th,
-			 joint_des_state[i].thd,
-			 joint_des_state[i].thdd,
-			 target[i].th,
-			 target[i].thd,
-			 target[i].thdd,
-			 time_to_go,
-			 delta_t,
-			 &(joint_des_state[i].th),
-			 &(joint_des_state[i].thd),
-			 &(joint_des_state[i].thdd));
+       joint_des_state[i].thd,
+       joint_des_state[i].thdd,
+       target[i].th,
+       target[i].thd,
+       target[i].thdd,
+       time_to_go,
+       delta_t,
+       &(joint_des_state[i].th),
+       &(joint_des_state[i].thd),
+       &(joint_des_state[i].thdd));
     }
 
     // decrement time to go
@@ -475,7 +496,9 @@ run_balance_task(void)
 
   case ASSIGN_RETURN_CENTER:
 
+#ifdef VERBOSE_LOG
     printf("assign return center\n");
+#endif
 
     // prepare going to the default posture
     bzero((char *)&(target[1]),N_DOFS*sizeof(target[1]));
@@ -492,21 +515,23 @@ run_balance_task(void)
 
   case MOVE_RETURN_CENTER:
 
+#ifdef VERBOSE_LOG
     printf("move return center\n");
+#endif
 
     // compute the update for the desired states
     for (i=1; i<=N_DOFS; ++i) {
       min_jerk_next_step(joint_des_state[i].th,
-			 joint_des_state[i].thd,
-			 joint_des_state[i].thdd,
-			 target[i].th,
-			 target[i].thd,
-			 target[i].thdd,
-			 time_to_go,
-			 delta_t,
-			 &(joint_des_state[i].th),
-			 &(joint_des_state[i].thd),
-			 &(joint_des_state[i].thdd));
+       joint_des_state[i].thd,
+       joint_des_state[i].thdd,
+       target[i].th,
+       target[i].thd,
+       target[i].thdd,
+       time_to_go,
+       delta_t,
+       &(joint_des_state[i].th),
+       &(joint_des_state[i].thd),
+       &(joint_des_state[i].thdd));
     }
 
     // decrement time to go
@@ -533,8 +558,8 @@ run_balance_task(void)
 
 /*****************************************************************************
 ******************************************************************************
-  Function Name	: change_balance_task
-  Date		: Dec. 1997
+  Function Name : change_balance_task
+  Date    : Dec. 1997
 
   Remarks:
 
@@ -582,8 +607,8 @@ using min jerk splines
  ******************************************************************************/
 static int 
 min_jerk_next_step (double x,double xd, double xdd, double t, double td, double tdd,
-		    double t_togo, double dt,
-		    double *x_next, double *xd_next, double *xdd_next)
+        double t_togo, double dt,
+        double *x_next, double *xd_next, double *xdd_next)
 
 {
   double t1,t2,t3,t4,t5;
