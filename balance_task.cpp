@@ -36,10 +36,10 @@ static SL_Cstate   cog_target;
 static SL_Cstate   cog_traj;
 static SL_Cstate   cog_ref;
 static double      delta_t = 0.01;
-// static double      duration = 10.0;
+static double      duration = 10.0;
 // static double      duration = 5.0;
 // static double      duration = 2.5;
-static double      duration = 2.0;
+// static double      duration = 2.0;
 // static double      duration = 1.0;
 static double      time_to_go;
 static int         which_step;
@@ -320,6 +320,22 @@ run_balance_task(void)
         joint_des_state[rowIdx].th += joint_des_state[rowIdx].thd * delta_t;
     }
 
+    // for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    // {
+    //     for (int colIdx = 1; colIdx <= N_CART; colIdx++)
+    //     {
+    //         joint_des_state[rowIdx].thd = 0.0;
+    //     }
+    // }
+
+    // for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    // {
+    //     for (int colIdx = 1; colIdx <= N_CART; colIdx++)
+    //     {
+    //         joint_des_state[rowIdx].thdd = 0.0;
+    //     }
+    // }
+
     // decrement time to go
     time_to_go -= delta_t;
     if (time_to_go <= 0) {
@@ -344,14 +360,14 @@ run_balance_task(void)
 
     if (RIGHT_FOOT == balance_foot)
     {
-        // target[L_HAA].th -=  0.4;
+        target[L_HAA].th -=  0.25;
         // target[L_AAA].th  =  0.5;
 
         // target[R_HAA].th -=  0.25;
         // target[R_AAA].th +=  0.05;
 
         target[L_HFE].th += 0.5;
-        target[L_KFE].th += 0.2;
+        target[L_KFE].th += 0.25;
 
         // stat[LEFT_FOOT][1] = FALSE;
         // stat[LEFT_FOOT][2] = FALSE;
@@ -369,14 +385,14 @@ run_balance_task(void)
     }
     else
     {
-        // target[R_HAA].th -=  0.4;
+        target[R_HAA].th -=  0.25;
         // target[R_AAA].th  = -0.5;
 
         // target[L_HAA].th -=  0.25;
         // target[L_AAA].th -=  0.05;
 
         target[R_HFE].th += 0.5;
-        target[R_KFE].th += 0.2;
+        target[R_KFE].th += 0.25;
 
         // stat[RIGHT_FOOT][1] = FALSE;
         // stat[RIGHT_FOOT][2] = FALSE;
