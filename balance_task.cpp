@@ -46,6 +46,7 @@ static int         which_step;
 static int         init_balance_foot = RIGHT_FOOT;
 static int         balance_foot;
 static int         iter;
+static double      crouch_angle = 0.50;
 
 // possible states of a state machine
 enum Steps {
@@ -159,10 +160,10 @@ init_balance_task(void)
     target[i] = joint_default_state[i];
 
   // TODO: set better initial position before shifting cog?
-  target[L_AFE].th += 0.5;
-  target[L_KFE].th += 0.55;
-  target[R_AFE].th += 0.5;
-  target[R_KFE].th += 0.55;
+  target[L_AFE].th += crouch_angle;
+  target[L_KFE].th += crouch_angle;
+  target[R_AFE].th += crouch_angle;
+  target[R_KFE].th += crouch_angle;
 
   // go to the target using inverse dynamics (ID)
   if (!go_target_wait_ID(target)) 
@@ -365,13 +366,13 @@ run_balance_task(void)
     if (RIGHT_FOOT == balance_foot)
     {
         target[L_HAA].th -=  0.25;
-        // target[L_AAA].th  =  0.5;
+        target[L_AAA].th  =  0.5;
 
         // target[R_HAA].th -=  0.25;
         // target[R_AAA].th +=  0.05;
 
-        target[L_HFE].th += 0.5;
-        target[L_KFE].th += 0.25;
+        // target[L_HFE].th += 0.5;
+        // target[L_KFE].th += 0.25;
 
         // stat[LEFT_FOOT][1] = FALSE;
         // stat[LEFT_FOOT][2] = FALSE;
@@ -390,13 +391,13 @@ run_balance_task(void)
     else
     {
         target[R_HAA].th -=  0.25;
-        // target[R_AAA].th  = -0.5;
+        target[R_AAA].th  = -0.5;
 
         // target[L_HAA].th -=  0.25;
         // target[L_AAA].th -=  0.05;
 
-        target[R_HFE].th += 0.5;
-        target[R_KFE].th += 0.25;
+        // target[R_HFE].th += 0.5;
+        // target[R_KFE].th += 0.25;
 
         // stat[RIGHT_FOOT][1] = FALSE;
         // stat[RIGHT_FOOT][2] = FALSE;
@@ -541,10 +542,10 @@ run_balance_task(void)
         target[i] = joint_default_state[i];
 
     // TODO: set better initial position before shifting cog?
-    target[L_AFE].th += 0.5;
-    target[L_KFE].th += 0.55;
-    target[R_AFE].th += 0.5;
-    target[R_KFE].th += 0.55;
+    target[L_AFE].th += crouch_angle;
+    target[L_KFE].th += crouch_angle;
+    target[R_AFE].th += crouch_angle;
+    target[R_KFE].th += crouch_angle;
 
     duration_scale = 1.0;
     // duration_scale = 5.0;
