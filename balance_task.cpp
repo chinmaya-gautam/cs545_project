@@ -46,7 +46,7 @@ static int         which_step;
 static int         init_balance_foot = RIGHT_FOOT;
 static int         balance_foot;
 static int         iter;
-static double      crouch_angle = 0.50;
+static double      crouch_angle = 0.35;
 
 // possible states of a state machine
 enum Steps {
@@ -250,9 +250,9 @@ run_balance_task(void)
 
     // where_cog for target when on right foot:
     // 0.054 ( 0.055)   y= 0.012 ( 0.014)   z=-0.119 (-0.117)
-    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.044 : base_state.x[_X_] + -0.044;
+    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.054;
     // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
-    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.000 + forward_offset;
+    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
     cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
 
     // the structure cog_des has the current position of the COG computed from the
@@ -365,14 +365,15 @@ run_balance_task(void)
 
     if (RIGHT_FOOT == balance_foot)
     {
-        target[L_HAA].th -=  0.25;
+        target[L_HAA].th -=  0.5;
         target[L_AAA].th  =  0.5;
 
         // target[R_HAA].th -=  0.25;
         // target[R_AAA].th +=  0.05;
 
         // target[L_HFE].th += 0.5;
-        // target[L_KFE].th += 0.25;
+        target[L_AFE].th += 0.25;
+        target[L_KFE].th += 0.25;
 
         // stat[LEFT_FOOT][1] = FALSE;
         // stat[LEFT_FOOT][2] = FALSE;
@@ -390,14 +391,15 @@ run_balance_task(void)
     }
     else
     {
-        target[R_HAA].th -=  0.25;
+        target[R_HAA].th -=  0.5;
         target[R_AAA].th  = -0.5;
 
         // target[L_HAA].th -=  0.25;
-        // target[L_AAA].th -=  0.05;
+        // target[L_AAA].th +=  0.05;
 
         // target[R_HFE].th += 0.5;
-        // target[R_KFE].th += 0.25;
+        target[R_AFE].th += 0.25;
+        target[R_KFE].th += 0.25;
 
         // stat[RIGHT_FOOT][1] = FALSE;
         // stat[RIGHT_FOOT][2] = FALSE;
