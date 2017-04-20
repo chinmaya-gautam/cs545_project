@@ -159,13 +159,10 @@ init_balance_task(void)
     target[i] = joint_default_state[i];
 
   // TODO: set better initial position before shifting cog?
-  target[L_AFE].th += 0.2;
-
-  target[L_KFE].th += 0.25;
-
-  target[R_AFE].th += 0.2;
-
-  target[R_KFE].th += 0.25;
+  target[L_AFE].th += 0.5;
+  target[L_KFE].th += 0.55;
+  target[R_AFE].th += 0.5;
+  target[R_KFE].th += 0.55;
 
   // go to the target using inverse dynamics (ID)
   if (!go_target_wait_ID(target)) 
@@ -542,6 +539,12 @@ run_balance_task(void)
     bzero((char *)&(target[1]),N_DOFS*sizeof(target[1]));
     for (i=1; i<=N_DOFS; i++)
         target[i] = joint_default_state[i];
+
+    // TODO: set better initial position before shifting cog?
+    target[L_AFE].th += 0.5;
+    target[L_KFE].th += 0.55;
+    target[R_AFE].th += 0.5;
+    target[R_KFE].th += 0.55;
 
     duration_scale = 1.0;
     // duration_scale = 5.0;
