@@ -25,8 +25,9 @@ Remarks:
 #include "SL_man.h"
 
 // defines
-#define VERBOSE_LOG
-// #define LOG
+// #define VERBOSE_LOG
+#define LOG
+#define LIFT_ARM
 
 // local variables
 static double      start_time = 0.0;
@@ -500,6 +501,10 @@ run_balance_task(void)
         target[L_AFE].th += 0.25;
         target[L_KFE].th += 0.25;
 
+#ifdef LIFT_ARM
+        target[R_SAA].th = -1.5;
+#endif
+
         // stat[LEFT_FOOT][1] = FALSE;
         // stat[LEFT_FOOT][2] = FALSE;
         // stat[LEFT_FOOT][3] = FALSE;
@@ -526,6 +531,9 @@ run_balance_task(void)
         target[R_AFE].th += 0.25;
         target[R_KFE].th += 0.25;
 
+#ifdef LIFT_ARM
+        target[L_SAA].th = -1.5;
+#endif
         // stat[RIGHT_FOOT][1] = FALSE;
         // stat[RIGHT_FOOT][2] = FALSE;
         // stat[RIGHT_FOOT][3] = FALSE;
