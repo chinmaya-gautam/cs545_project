@@ -296,9 +296,9 @@ run_balance_task(void)
       min_jerk_next_step(cog_traj.x[i],
 			 cog_traj.xd[i],
 			 cog_traj.xdd[i],
-			 cog_orig.x[i],
-			 cog_orig.xd[i],
-			 cog_orig.xdd[i],
+			 cog_target.x[i],
+			 cog_target.xd[i],
+			 cog_target.xdd[i],
 			 time_to_go,
 			 delta_t,
 			 &(cog_traj.x[i]),
@@ -631,7 +631,7 @@ run_balance_task(void)
       // this is a special inverse dynamics computation for a free standing robot
       inverseDynamicsFloat(delta_t, stat, TRUE, joint_des_state, NULL, NULL, fc);
 
-      if (1)
+      if (0)
       {
           double alpha = time_to_go/duration;
           // alpha = 1.0;
