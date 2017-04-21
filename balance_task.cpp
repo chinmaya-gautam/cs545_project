@@ -53,6 +53,7 @@ static double      crouch_angle = 0.35;
 // possible states of a state machine
 enum Steps {
   ASSIGN_COG_TARGET,
+  WAIT_FOR_COG_TARGET,
   MOVE_TO_COG_TARGET,
   ASSIGN_JOINT_TARGET_LIFT_UP,
   MOVE_JOINT_TARGET_LIFT_UP,
@@ -277,11 +278,109 @@ run_balance_task(void)
     time_to_go = duration;
 
     // switch to next step of state machine
-    which_step = MOVE_TO_COG_TARGET;
+    which_step = WAIT_FOR_COG_TARGET;
 
 #ifdef LOG
     printf("move cog target iter %d\n", iter);
 #endif
+
+    break;
+
+  case WAIT_FOR_COG_TARGET: // this is for inverse kinematics control
+
+#ifdef VERBOSE_LOG
+    printf("wait cog target iter %d\n", iter);
+#endif
+
+    // plan the next step of cog with min jerk
+    for (i=1; i<=N_CART; ++i) {
+      min_jerk_next_step(cog_traj.x[i],
+			 cog_traj.xd[i],
+			 cog_traj.xdd[i],
+			 cog_traj.x[i],
+			 cog_traj.xd[i],
+			 cog_traj.xdd[i],
+			 time_to_go,
+			 delta_t,
+			 &(cog_traj.x[i]),
+			 &(cog_traj.xd[i]),
+			 &(cog_traj.xdd[i]));
+    }
+
+    // inverse kinematics: we use a P controller to correct for tracking erros
+    for (i=1; i<=N_CART; ++i)
+        cog_ref.xd[i] = kp*(cog_traj.x[i] - cog_des.x[i]) + cog_traj.xd[i];
+
+
+    // compute the joint_des_state[i].th and joint_des_state[i].thd  
+    for (i=1; i<=N_DOFS; ++i) {
+
+      // intialize to zero
+      joint_des_state[i].thd  = 0;
+      joint_des_state[i].thdd = 0;
+      joint_des_state[i].uff  = 0;
+
+      // joint_des_state[i].thd = ?;
+      // joint_des_state[i].thd = ?;
+
+    }
+
+    for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    {
+        for (int colIdx = 1; colIdx <= N_CART; colIdx++)
+        {
+            joint_des_state[rowIdx].thd += Jccogp[rowIdx][colIdx] * cog_ref.xd[colIdx];
+        }
+    }
+
+    for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    {
+        joint_des_state[rowIdx].th += joint_des_state[rowIdx].thd * delta_t;
+    }
+
+    if (0)
+    {
+        double alpha = time_to_go/duration;
+        // alpha = 1.0;
+        printf("alpha: %f\n", (float)alpha);
+        for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+        {
+            joint_des_state[rowIdx].th = (1-alpha)*joint_des_state[rowIdx].th + alpha*prev_joint_des_state[rowIdx].th;
+            joint_des_state[rowIdx].thd = (1-alpha)*joint_des_state[rowIdx].thd + alpha*prev_joint_des_state[rowIdx].thd;
+            joint_des_state[rowIdx].thdd = (1-alpha)*joint_des_state[rowIdx].thdd + alpha*prev_joint_des_state[rowIdx].thdd;
+        }
+    }
+
+    // for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    // {
+    //     for (int colIdx = 1; colIdx <= N_CART; colIdx++)
+    //     {
+    //         joint_des_state[rowIdx].thd = 0.0;
+    //     }
+    // }
+
+    // for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+    // {
+    //     for (int colIdx = 1; colIdx <= N_CART; colIdx++)
+    //     {
+    //         joint_des_state[rowIdx].thdd = 0.0;
+    //     }
+    // }
+
+    // decrement time to go
+    time_to_go -= delta_t;
+    if (time_to_go <= 0) {
+      which_step = MOVE_TO_COG_TARGET;
+
+      duration_scale = 1.0;
+      // duration_scale = 5.0;
+
+      time_to_go = duration_scale * duration;  // this may be too fast -- maybe a slower movement is better
+
+      // save current state to return leg to ground
+      for (i=1; i<=N_DOFS; ++i)
+          saved_target[i] = joint_des_state[i];
+    }
 
     break;
 
