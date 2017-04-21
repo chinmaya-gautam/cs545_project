@@ -25,14 +25,16 @@ Remarks:
 #include "SL_man.h"
 
 // defines
-// #define VERBOSE_LOG
-#define LOG
+#define VERBOSE_LOG
+// #define LOG
 
 // local variables
 static double      start_time = 0.0;
 static SL_DJstate  target[N_DOFS+1];
+static SL_DJstate  prev_joint_des_state[N_DOFS+1];
 static SL_DJstate  saved_target[N_DOFS+1];
 static SL_Cstate   cog_target;
+static SL_Cstate   cog_orig;
 static SL_Cstate   cog_traj;
 static SL_Cstate   cog_ref;
 static double      delta_t = 0.01;
@@ -257,9 +259,19 @@ run_balance_task(void)
 
     // the structure cog_des has the current position of the COG computed from the
     // joint_des_state of the robot. cog_des should track cog_traj
+    bzero((void *)&cog_orig,sizeof(cog_orig));
     bzero((void *)&cog_traj,sizeof(cog_traj));
     for (i=1; i<=N_CART; ++i)
+    {
+      cog_orig.x[i] = cog_des.x[i];
       cog_traj.x[i] = cog_des.x[i];
+    }
+
+    bzero((char *)&(prev_joint_des_state[1]),N_DOFS*sizeof(prev_joint_des_state[1]));
+    for (i=1; i<=N_DOFS; ++i)
+    {
+        prev_joint_des_state[i] = joint_des_state[i];
+    }
 
     // time to go
     time_to_go = duration;
@@ -284,9 +296,9 @@ run_balance_task(void)
       min_jerk_next_step(cog_traj.x[i],
 			 cog_traj.xd[i],
 			 cog_traj.xdd[i],
-			 cog_target.x[i],
-			 cog_target.xd[i],
-			 cog_target.xdd[i],
+			 cog_orig.x[i],
+			 cog_orig.xd[i],
+			 cog_orig.xdd[i],
 			 time_to_go,
 			 delta_t,
 			 &(cog_traj.x[i]),
@@ -296,7 +308,7 @@ run_balance_task(void)
 
     // inverse kinematics: we use a P controller to correct for tracking erros
     for (i=1; i<=N_CART; ++i)
-      cog_ref.xd[i] = kp*(cog_traj.x[i] - cog_des.x[i]) + cog_traj.xd[i];
+        cog_ref.xd[i] = kp*(cog_traj.x[i] - cog_des.x[i]) + cog_traj.xd[i];
 
 
     // compute the joint_des_state[i].th and joint_des_state[i].thd  
@@ -323,6 +335,18 @@ run_balance_task(void)
     for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
     {
         joint_des_state[rowIdx].th += joint_des_state[rowIdx].thd * delta_t;
+    }
+
+    {
+        double alpha = time_to_go/duration;
+        // alpha = 1.0;
+        printf("alpha: %f\n", (float)alpha);
+        for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+        {
+            joint_des_state[rowIdx].th = (1-alpha)*joint_des_state[rowIdx].th + alpha*prev_joint_des_state[rowIdx].th;
+            joint_des_state[rowIdx].thd = (1-alpha)*joint_des_state[rowIdx].thd + alpha*prev_joint_des_state[rowIdx].thd;
+            joint_des_state[rowIdx].thdd = (1-alpha)*joint_des_state[rowIdx].thdd + alpha*prev_joint_des_state[rowIdx].thdd;
+        }
     }
 
     // for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
