@@ -337,6 +337,7 @@ run_balance_task(void)
         joint_des_state[rowIdx].th += joint_des_state[rowIdx].thd * delta_t;
     }
 
+    if (0)
     {
         double alpha = time_to_go/duration;
         // alpha = 1.0;
@@ -629,6 +630,25 @@ run_balance_task(void)
   {
       // this is a special inverse dynamics computation for a free standing robot
       inverseDynamicsFloat(delta_t, stat, TRUE, joint_des_state, NULL, NULL, fc);
+
+      if (1)
+      {
+          double alpha = time_to_go/duration;
+          // alpha = 1.0;
+#ifdef VERBOSE_LOG
+          printf("alpha 2: %f\n", (float)alpha);
+#endif
+          for (int rowIdx = 1; rowIdx <= N_DOFS; rowIdx++)
+          {
+              joint_des_state[rowIdx].th = (1-alpha)*joint_des_state[rowIdx].th + alpha*prev_joint_des_state[rowIdx].th;
+              joint_des_state[rowIdx].thd = (1-alpha)*joint_des_state[rowIdx].thd + alpha*prev_joint_des_state[rowIdx].thd;
+              joint_des_state[rowIdx].thdd = (1-alpha)*joint_des_state[rowIdx].thdd + alpha*prev_joint_des_state[rowIdx].thdd;
+
+              // joint_des_state[rowIdx].th = 0;
+              // joint_des_state[rowIdx].thd = 0;
+              // joint_des_state[rowIdx].thdd = 0;
+          }
+      }
   }
 
   return TRUE;
