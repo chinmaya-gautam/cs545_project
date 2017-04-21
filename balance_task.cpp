@@ -446,6 +446,7 @@ run_balance_task(void)
             joint_des_state[rowIdx].th = (1-alpha)*joint_des_state[rowIdx].th + alpha*prev_joint_des_state[rowIdx].th;
             joint_des_state[rowIdx].thd = (1-alpha)*joint_des_state[rowIdx].thd + alpha*prev_joint_des_state[rowIdx].thd;
             joint_des_state[rowIdx].thdd = (1-alpha)*joint_des_state[rowIdx].thdd + alpha*prev_joint_des_state[rowIdx].thdd;
+            joint_des_state[rowIdx].uff = (1-alpha)*joint_des_state[rowIdx].uff + alpha*prev_joint_des_state[rowIdx].uff;
         }
     }
 
@@ -742,6 +743,7 @@ run_balance_task(void)
               joint_des_state[rowIdx].th = (1-alpha)*joint_des_state[rowIdx].th + alpha*prev_joint_des_state[rowIdx].th;
               joint_des_state[rowIdx].thd = (1-alpha)*joint_des_state[rowIdx].thd + alpha*prev_joint_des_state[rowIdx].thd;
               joint_des_state[rowIdx].thdd = (1-alpha)*joint_des_state[rowIdx].thdd + alpha*prev_joint_des_state[rowIdx].thdd;
+              joint_des_state[rowIdx].uff = (1-alpha)*joint_des_state[rowIdx].uff + alpha*prev_joint_des_state[rowIdx].uff;
 
               // joint_des_state[rowIdx].th = 0;
               // joint_des_state[rowIdx].thd = 0;
