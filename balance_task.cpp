@@ -269,10 +269,16 @@ run_balance_task(void)
       cog_traj.x[i] = cog_des.x[i];
     }
 
-    bzero((char *)&(prev_joint_des_state[1]),N_DOFS*sizeof(prev_joint_des_state[1]));
-    for (i=1; i<=N_DOFS; ++i)
+    static bool first_time = true;
+    if (first_time)
     {
-        prev_joint_des_state[i] = joint_des_state[i];
+        bzero((char *)&(prev_joint_des_state[1]),N_DOFS*sizeof(prev_joint_des_state[1]));
+        for (i=1; i<=N_DOFS; ++i)
+        {
+            prev_joint_des_state[i] = joint_des_state[i];
+        }
+
+        first_time = false;
     }
 
     // time to go
