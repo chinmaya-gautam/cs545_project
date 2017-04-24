@@ -26,7 +26,7 @@ Remarks:
 
 // defines
 // #define VERBOSE_LOG
-#define LOG
+// #define LOG
 #define LIFT_ARM
 
 // local variables
