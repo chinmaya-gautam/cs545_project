@@ -39,8 +39,8 @@ static SL_Cstate   cog_orig;
 static SL_Cstate   cog_traj;
 static SL_Cstate   cog_ref;
 static double      delta_t = 0.01;
-static double      duration = 10.0;
-// static double      duration = 5.0;
+// static double      duration = 10.0;
+static double      duration = 5.0;
 // static double      duration = 2.5;
 // static double      duration = 2.0;
 // static double      duration = 1.0;
@@ -256,7 +256,8 @@ run_balance_task(void)
     // 0.054 ( 0.055)   y= 0.012 ( 0.014)   z=-0.119 (-0.117)
     cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.034;
     // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
-    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
+    // cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
+    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.005 + forward_offset;
     cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
 
     // the structure cog_des has the current position of the COG computed from the
