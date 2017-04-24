@@ -46,7 +46,7 @@ static double      duration = 10.0;
 // static double      duration = 1.0;
 static double      time_to_go;
 static int         which_step;
-static int         init_balance_foot = RIGHT_FOOT;
+static int         init_balance_foot = LEFT_FOOT;
 static int         balance_foot;
 static int         iter;
 static double      crouch_angle = 0.35;
@@ -254,9 +254,9 @@ run_balance_task(void)
 
     // where_cog for target when on right foot:
     // 0.054 ( 0.055)   y= 0.012 ( 0.014)   z=-0.119 (-0.117)
-    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.054;
+    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.034;
     // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
-    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.015 + forward_offset;
+    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
     cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
 
     // the structure cog_des has the current position of the COG computed from the
