@@ -174,10 +174,10 @@ init_balance_task(void)
   if (!go_target_wait_ID(target)) 
     return FALSE;
 
-  ans = 999;
-  while (ans == 999) {
-    if (!get_int("Enter 1 for real robot, anything else for simulator ...",ans,&ans))
-      return FALSE;
+  ans = 0;
+  if (!get_int("Enter 1 for real robot, anything else for simulator ...",ans,&ans))
+  {
+    return FALSE;
   }
 
   if (ans == 1)
