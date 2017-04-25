@@ -50,6 +50,7 @@ static int         init_balance_foot = LEFT_FOOT;
 static int         balance_foot;
 static int         iter;
 static double      crouch_angle = 0.35;
+static int         real_robot = 0;
 
 // possible states of a state machine
 enum Steps {
@@ -173,6 +174,23 @@ init_balance_task(void)
   if (!go_target_wait_ID(target)) 
     return FALSE;
 
+  ans = 999;
+  while (ans == 999) {
+    if (!get_int("Enter 1 for real robot, anything else for simulator ...",ans,&ans))
+      return FALSE;
+  }
+
+  if (ans == 1)
+  {
+    printf("Running on real robot.\n");
+    real_robot = 1;
+  }
+  else
+  {
+    printf("Running on simulator.\n");
+    real_robot = 0;
+  }
+
   // ready to go
   ans = 999;
   while (ans == 999) {
@@ -254,11 +272,27 @@ run_balance_task(void)
 
     // where_cog for target when on right foot:
     // 0.054 ( 0.055)   y= 0.012 ( 0.014)   z=-0.119 (-0.117)
-    cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.034;
-    // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
-    // cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
-    cog_target.x[_Y_] =  base_state.x[_Y_] - 0.005 + forward_offset;
-    cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
+
+    if (real_robot)
+    {
+        // real robot, left foot cog target should be different for some reason
+
+        cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.034;
+        // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
+        // cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
+        cog_target.x[_Y_] =  base_state.x[_Y_] - 0.005 + forward_offset;
+        cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
+    }
+    else
+    {
+        // simulator
+
+        cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? base_state.x[_X_] + 0.054 : base_state.x[_X_] + -0.054;
+        // cog_target.x[_X_] =  (RIGHT_FOOT == balance_foot) ? 0.04 : -0.04;
+        // cog_target.x[_Y_] =  base_state.x[_Y_] - 0.012 + forward_offset;
+        cog_target.x[_Y_] =  base_state.x[_Y_] - 0.015 + forward_offset;
+        cog_target.x[_Z_] =  base_state.x[_Z_] - 1.59;
+    }
 
     // the structure cog_des has the current position of the COG computed from the
     // joint_des_state of the robot. cog_des should track cog_traj
